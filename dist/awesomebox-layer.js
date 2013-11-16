@@ -54,7 +54,11 @@
               'Content-Type': content_type
             });
             return res.send(opts.content);
-          })["catch"](next);
+          })["catch"](function(err) {
+            console.log(req.url);
+            console.log(err.stack);
+            return next(err);
+          });
         };
       }
     };
@@ -95,7 +99,11 @@
             return next();
           }
           return next(null, opts.content);
-        })["catch"](next);
+        })["catch"](function(err) {
+          console.log(renderer.opts.root, name);
+          console.log(err.stack);
+          return next(err);
+        });
       };
       return done();
     };

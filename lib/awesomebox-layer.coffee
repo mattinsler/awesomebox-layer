@@ -32,7 +32,10 @@ module.exports = (app) ->
           res.status(200)
           res.set('Content-Type': content_type)
           res.send(opts.content)
-        .catch(next)
+        .catch (err) ->
+          console.log req.url
+          console.log err.stack
+          next(err)
   
   app.sequence('http').insert(
     'awesomebox-render', setup_awesomebox_render(app)
@@ -56,6 +59,9 @@ setup_awesomebox_render = (app) ->
       .then (opts) ->
         return next() unless opts.content?
         next(null, opts.content)
-      .catch(next)
+      .catch (err) ->
+        console.log renderer.opts.root, name
+        console.log err.stack
+        next(err)
     
     done()
