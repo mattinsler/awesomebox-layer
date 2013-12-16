@@ -1,7 +1,7 @@
 {
   "name": "awesomebox-layer",
   "description": "layer-cake plugin to use awesomebox as a rendering engine",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "homepage": "https://github.com/mattinsler/awesomebox-layer",
   "author": {
     "name": "Matt Insler",
@@ -26,7 +26,10 @@
     "node": ">= 0.8.0"
   },
   "dependencies": {
-    "mime": "~1.2.11"
+    "mime": "~1.2.11",
+    "q": "~0.9.7",
+    "cssmin": "~0.4.1",
+    "uglify-js2": "~2.1.11"
   },
   "devDependencies": {
     "grunt": "~0.4.1",

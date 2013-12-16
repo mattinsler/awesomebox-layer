@@ -1,9 +1,15 @@
 (function() {
-  var Renderer, err, helpers, mime, path, setup_awesomebox_render, _ref;
+  var Renderer, UglifyJS, cssmin, err, helpers, mime, path, q, setup_awesomebox_render, _ref;
+
+  q = require('q');
 
   path = require('path');
 
   mime = require('mime');
+
+  cssmin = require('cssmin');
+
+  UglifyJS = require('uglify-js2');
 
   try {
     _ref = require(path.join(process.cwd(), 'node_modules', 'awesomebox-core')), helpers = _ref.helpers, Renderer = _ref.Renderer;
@@ -25,35 +31,63 @@
       _base2.views = path.join(app.path.app, 'views');
     }
     app.awesomebox = {
+      cache: {
+        css: {},
+        js: {}
+      },
       middleware: function(root_path) {
         var renderer;
         renderer = new Renderer({
           root: root_path
         });
         return function(req, res, next) {
-          var file, o;
+          var file, o, _ref1;
           file = helpers.find_file(renderer.opts.root, req.url);
           if (file == null) {
             return next();
           }
           o = helpers.parse_filename(file);
-          if (!(o.engines.length > 0 || /\.html$/.test(file))) {
+          if ((_ref1 = o.type) !== 'css' && _ref1 !== 'js') {
             return next();
           }
-          return renderer.render(file).then(function(opts) {
-            var content_type;
-            if (opts.content == null) {
-              return next();
+          return q().then(function() {
+            if (app.awesomebox.cache[o.type][req.url] != null) {
+              return app.awesomebox.cache[o.type][req.url];
             }
-            content_type = mime.lookup(req.url);
-            if (content_type === 'application/octet-stream') {
-              content_type = mime.lookup(opts.type);
+            return renderer.render(file).then(function(opts) {
+              var content_type, data;
+              if (opts.content == null) {
+                return null;
+              }
+              content_type = mime.lookup(req.url);
+              if (content_type === 'application/octet-stream') {
+                content_type = mime.lookup(opts.type);
+              }
+              data = {
+                content_type: content_type,
+                content: opts.content
+              };
+              if (app.environment === 'development') {
+                return data;
+              }
+              if (o.type === 'css') {
+                opts.content = cssmin(opts.content.toString());
+              } else if (o.type === 'js') {
+                opts.content = UglifyJS.minify(opts.content.toString(), {
+                  fromString: true
+                }).code;
+              }
+              return app.awesomebox.cache[o.type][req.url] = data;
+            });
+          }).then(function(data) {
+            if (data == null) {
+              return next();
             }
             res.status(200);
             res.set({
-              'Content-Type': content_type
+              'Content-Type': data.content_type
             });
-            return res.send(opts.content);
+            return res.send(data.content);
           })["catch"](function(err) {
             console.log(req.url);
             console.log(err.stack);
