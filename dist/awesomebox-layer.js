@@ -36,12 +36,11 @@
         js: {}
       },
       middleware: function(root_path) {
-        var renderer;
-        renderer = new Renderer({
-          root: root_path
-        });
         return function(req, res, next) {
-          var file, o, _ref1;
+          var file, o, renderer, _ref1;
+          renderer = new Renderer({
+            root: root_path
+          });
           file = helpers.find_file(renderer.opts.root, req.url);
           if (file == null) {
             return next();
@@ -102,13 +101,12 @@
   };
 
   setup_awesomebox_render = function(app) {
-    var renderer;
-    renderer = new Renderer({
-      root: app.path.views
-    });
     return function(done) {
       app.express.render = function(name, options, next) {
-        var data, file, k, v, _ref1, _ref2;
+        var data, file, k, renderer, v, _ref1, _ref2;
+        renderer = new Renderer({
+          root: app.path.views
+        });
         file = helpers.find_file(renderer.opts.root, name);
         if (file == null) {
           return next();

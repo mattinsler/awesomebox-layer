@@ -21,9 +21,9 @@ module.exports = (app) ->
       js: {}
     
     middleware: (root_path) ->
-      renderer = new Renderer(root: root_path)
-      
       (req, res, next) ->
+        renderer = new Renderer(root: root_path)
+        
         file = helpers.find_file(renderer.opts.root, req.url)
         return next() unless file?
         
@@ -71,10 +71,10 @@ module.exports = (app) ->
   )
 
 setup_awesomebox_render = (app) ->
-  renderer = new Renderer(root: app.path.views)
-  
   (done) ->
     app.express.render = (name, options, next) ->
+      renderer = new Renderer(root: app.path.views)
+      
       file = helpers.find_file(renderer.opts.root, name)
       return next() unless file?
       
