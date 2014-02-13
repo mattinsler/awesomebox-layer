@@ -19,6 +19,7 @@ module.exports = (app) ->
     cache:
       css: {}
       js: {}
+    locals: {}
     
     middleware: (root_path) ->
       (req, res, next) ->
@@ -34,7 +35,7 @@ module.exports = (app) ->
         .then ->
           return app.awesomebox.cache[o.type][req.url] if app.awesomebox.cache[o.type][req.url]?
         
-          renderer.render(file)
+          renderer.render(file, app.awesomebox.locals)
           .then (opts) ->
             return null unless opts.content?
             
@@ -89,7 +90,7 @@ setup_awesomebox_render = (app) ->
         next(null, opts.content)
       .catch (err) ->
         console.log renderer.opts.root, name
-        console.log err.stack
+        console.log err.original_error.message
         next(err)
     
     done()

@@ -35,6 +35,7 @@
         css: {},
         js: {}
       },
+      locals: {},
       middleware: function(root_path) {
         return function(req, res, next) {
           var file, o, renderer, _ref1;
@@ -53,7 +54,7 @@
             if (app.awesomebox.cache[o.type][req.url] != null) {
               return app.awesomebox.cache[o.type][req.url];
             }
-            return renderer.render(file).then(function(opts) {
+            return renderer.render(file, app.awesomebox.locals).then(function(opts) {
               var content_type, data;
               if (opts.content == null) {
                 return null;
@@ -133,7 +134,7 @@
           return next(null, opts.content);
         })["catch"](function(err) {
           console.log(renderer.opts.root, name);
-          console.log(err.stack);
+          console.log(err.original_error.message);
           return next(err);
         });
       };
