@@ -38,11 +38,12 @@
       locals: {},
       middleware: function(root_path) {
         return function(req, res, next) {
-          var file, o, renderer, _ref1;
+          var file, o, renderer, url, _ref1;
           renderer = new Renderer({
             root: root_path
           });
-          file = helpers.find_file(renderer.opts.root, req.url);
+          url = req.url.split(/[\?#]/)[0];
+          file = helpers.find_file(renderer.opts.root, url);
           if (file == null) {
             return next();
           }
@@ -51,15 +52,15 @@
             return next();
           }
           return q().then(function() {
-            if (app.awesomebox.cache[o.type][req.url] != null) {
-              return app.awesomebox.cache[o.type][req.url];
+            if (app.awesomebox.cache[o.type][url] != null) {
+              return app.awesomebox.cache[o.type][url];
             }
             return renderer.render(file, app.awesomebox.locals).then(function(opts) {
               var content_type, data;
               if (opts.content == null) {
                 return null;
               }
-              content_type = mime.lookup(req.url);
+              content_type = mime.lookup(url);
               if (content_type === 'application/octet-stream') {
                 content_type = mime.lookup(opts.type);
               }
@@ -77,7 +78,7 @@
                   fromString: true
                 }).code;
               }
-              return app.awesomebox.cache[o.type][req.url] = data;
+              return app.awesomebox.cache[o.type][url] = data;
             });
           }).then(function(data) {
             if (data == null) {
@@ -89,7 +90,7 @@
             });
             return res.send(data.content);
           })["catch"](function(err) {
-            console.log(req.url);
+            console.log(url);
             console.log(err.stack);
             return next(err);
           });

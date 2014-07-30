@@ -25,7 +25,9 @@ module.exports = (app) ->
       (req, res, next) ->
         renderer = new Renderer(root: root_path)
         
-        file = helpers.find_file(renderer.opts.root, req.url)
+        url = req.url.split(/[\?#]/)[0]
+        
+        file = helpers.find_file(renderer.opts.root, url)
         return next() unless file?
         
         o = helpers.parse_filename(file)
@@ -33,13 +35,13 @@ module.exports = (app) ->
         
         q()
         .then ->
-          return app.awesomebox.cache[o.type][req.url] if app.awesomebox.cache[o.type][req.url]?
+          return app.awesomebox.cache[o.type][url] if app.awesomebox.cache[o.type][url]?
         
           renderer.render(file, app.awesomebox.locals)
           .then (opts) ->
             return null unless opts.content?
             
-            content_type = mime.lookup(req.url)
+            content_type = mime.lookup(url)
             content_type = mime.lookup(opts.type) if content_type is 'application/octet-stream'
             
             data =
@@ -53,7 +55,7 @@ module.exports = (app) ->
             else if o.type is 'js'
               opts.content = UglifyJS.minify(opts.content.toString(), fromString: true).code
             
-            app.awesomebox.cache[o.type][req.url] = data
+            app.awesomebox.cache[o.type][url] = data
         
         .then (data) ->
           return next() unless data?
@@ -62,7 +64,7 @@ module.exports = (app) ->
           res.set('Content-Type': data.content_type)
           res.send(data.content)
         .catch (err) ->
-          console.log req.url
+          console.log url
           console.log err.stack
           next(err)
   
